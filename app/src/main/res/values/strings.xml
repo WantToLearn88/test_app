@@ -1,0 +1,7 @@
+<resources>
+    <string name="app_name">sora</string>
+      <string name="switch_language">Switch Language</string>  
+    <string name="switch_color_scheme">Switch Color Scheme</string>  
+    <string name="text_size">Text Size</string>  
+    <string name="color_scheme">Color Scheme</string>  
+</resources>

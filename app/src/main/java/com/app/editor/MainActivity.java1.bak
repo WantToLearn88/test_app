@@ -1,0 +1,111 @@
+package com.app.editor;
+
+import android.os.Bundle;
+import androidx.appcompat.app.AppCompatActivity;
+import io.github.rosemoe.sora.widget.CodeEditor;
+import io.github.rosemoe.sora.langs.java.JavaLanguage;
+import io.github.rosemoe.sora.event.ContentChangeEvent;
+import io.github.rosemoe.sora.event.SelectionChangeEvent;
+
+import io.github.rosemoe.sora.event.ContentChangeEvent;
+import io.github.rosemoe.sora.event.EditorKeyEvent;
+// import io.github.rosemoe.sora.event.InlayHintClickEvent;
+import io.github.rosemoe.sora.event.KeyBindingEvent;
+import io.github.rosemoe.sora.event.PublishSearchResultEvent;
+import io.github.rosemoe.sora.event.SelectionChangeEvent;
+import io.github.rosemoe.sora.event.SideIconClickEvent;
+import io.github.rosemoe.sora.event.TextSizeChangeEvent;
+// import io.github.rosemoe.sora.graphics.inlayHint.ColorInlayHintRenderer;
+// import io.github.rosemoe.sora.graphics.inlayHint.TextInlayHintRenderer;
+import io.github.rosemoe.sora.lang.EmptyLanguage;
+// import io.github.rosemoe.sora.lang.JavaLanguageSpec;
+
+import io.github.rosemoe.sora.langs.textmate.TextMateLanguage;
+import io.github.rosemoe.sora.langs.textmate.registry.FileProviderRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.ThemeRegistry;
+// import io.github.rosemoe.sora.langs.textmate.registry.dsl.languages;
+import io.github.rosemoe.sora.langs.textmate.registry.model.DefaultGrammarDefinition;
+import io.github.rosemoe.sora.langs.textmate.registry.model.ThemeModel;
+import io.github.rosemoe.sora.langs.textmate.registry.provider.AssetsFileResolver;
+
+import io.github.rosemoe.sora.widget.CodeEditor;
+import io.github.rosemoe.sora.widget.EditorSearcher;
+import io.github.rosemoe.sora.widget.EditorSearcher.SearchOptions;
+import io.github.rosemoe.sora.widget.SelectionMovement;
+import io.github.rosemoe.sora.widget.component.EditorAutoCompletion;
+import io.github.rosemoe.sora.widget.component.Magnifier;
+import io.github.rosemoe.sora.widget.ext.EditorSpanInteractionHandler;
+// import io.github.rosemoe.sora.widget.getComponent;
+import io.github.rosemoe.sora.widget.schemes.EditorColorScheme;
+import io.github.rosemoe.sora.widget.schemes.SchemeDarcula;
+import io.github.rosemoe.sora.widget.schemes.SchemeEclipse;
+import io.github.rosemoe.sora.widget.schemes.SchemeGitHub;
+import io.github.rosemoe.sora.widget.schemes.SchemeNotepadXX;
+import io.github.rosemoe.sora.widget.schemes.SchemeVS2019;
+import io.github.rosemoe.sora.widget.style.LineInfoPanelPosition;
+import io.github.rosemoe.sora.widget.style.LineInfoPanelPositionMode;
+// import io.github.rosemoe.sora.widget.subscribeAlways;
+
+import android.graphics.Typeface;
+import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.Toolbar;
+
+import java.io.IOException;
+import java.io.InputStream;
+
+import io.github.rosemoe.sora.langs.textmate.TextMateColorScheme;
+import io.github.rosemoe.sora.langs.textmate.TextMateLanguage;
+import io.github.rosemoe.sora.langs.textmate.registry.FileProviderRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.GrammarRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.ThemeRegistry;
+import io.github.rosemoe.sora.langs.textmate.registry.model.ThemeModel;
+import io.github.rosemoe.sora.langs.textmate.registry.provider.AssetsFileResolver;
+import io.github.rosemoe.sora.widget.CodeEditor;
+import io.github.rosemoe.sora.widget.schemes.EditorColorScheme;
+import org.eclipse.tm4e.core.registry.IThemeSource;
+
+
+public class MainActivity extends AppCompatActivity {  
+      
+    private CodeEditor editor;  
+      
+    @Override  
+    protected void onCreate(Bundle savedInstanceState) {  
+        super.onCreate(savedInstanceState);  
+        setContentView(R.layout.activity_main);  
+          
+        // استيراد المحرر من الـ layout  
+        editor = findViewById(R.id.editor);  
+          
+        // تطبيق الثيم (Darcula - ثيم داكن)  
+        editor.setColorScheme(new SchemeDarcula());  
+          
+        // تطبيق لغة البرمجة (Java)  
+        editor.setEditorLanguage(new JavaLanguage());  
+          
+        // تطبيق حجم الخط ونوعه  
+        editor.setTextSize(14f); // حجم الخط بالـ sp  
+        Typeface typeface = Typeface.createFromAsset(getAssets(), "JetBrainsMono-Regular.ttf");  
+        editor.setTypefaceText(typeface);  
+          
+        // إعدادات إضافية اختيارية  
+        editor.setLineSpacing(2f, 1.1f);  
+        editor.setLineNumberEnabled(true);  
+    }  
+      
+    @Override  
+    protected void onDestroy() {  
+        super.onDestroy();  
+        if (editor != null) {  
+            editor.release();  
+        }  
+    }  
+}
