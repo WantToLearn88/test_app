@@ -30,6 +30,15 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 
 
+import androidx.documentfile.provider.DocumentFile;
+import android.widget.ListView;
+import android.widget.ArrayAdapter;
+
+import java.util.ArrayList;
+import java.util.List;
+
+
+
 public class MainActivity extends AppCompatActivity {
 
   private CodeEditor editor;
@@ -39,7 +48,12 @@ public class MainActivity extends AppCompatActivity {
   private static final int REQUEST_SAVE = 2;
   
   private static final int REQUEST_OPEN_PROJECT = 100;
-private Uri projectRootUri;
+  private Uri projectRootUri;
+  
+  
+  private ListView listFiles;
+  private final List<DocumentFile> projectFiles = new ArrayList<>();
+
 
 
   @Override
@@ -48,6 +62,9 @@ private Uri projectRootUri;
     setContentView(R.layout.activity_main);
 
     editor = findViewById(R.id.editor);
+    
+    listFiles = findViewById(R.id.listFiles);
+
 
  
 
@@ -164,8 +181,82 @@ protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         projectRootUri = uri;
         showMessage("Project opened successfully");
+        
+        loadProjectFiles();
+
     }
 }
+
+
+private void loadProjectFiles() {
+
+    projectFiles.clear();
+
+    DocumentFile root = DocumentFile.fromTreeUri(this, projectRootUri);
+    if (root == null || !root.isDirectory()) {
+        showMessage("Invalid project directory");
+        return;
+    }
+
+    readDirectoryRecursive(root);
+
+    if (projectFiles.isEmpty()) {
+        showMessage("No supported files found");
+    }
+
+    showFilesInList();
+}
+
+
+private void readDirectoryRecursive(DocumentFile dir) {
+
+    for (DocumentFile file : dir.listFiles()) {
+
+        if (file.isDirectory()) {
+            readDirectoryRecursive(file);
+            continue;
+        }
+
+        if (!file.isFile() || !file.canRead()) {
+            continue;
+        }
+
+        String name = file.getName();
+        if (name == null) continue;
+
+        if (isSupportedFile(name)) {
+            projectFiles.add(file);
+        }
+    }
+}
+
+
+private boolean isSupportedFile(String name) {
+    String lower = name.toLowerCase();
+    return lower.endsWith(".java")
+            || lower.endsWith(".kt")
+            || lower.endsWith(".xml")
+            || lower.endsWith(".json")
+            || lower.endsWith(".txt");
+}
+
+
+private void showFilesInList() {
+
+    List<String> names = new ArrayList<>();
+
+    for (DocumentFile file : projectFiles) {
+        names.add(file.getName());
+    }
+
+    ArrayAdapter<String> adapter =
+            new ArrayAdapter<>(this,
+                    android.R.layout.simple_list_item_1,
+                    names);
+
+    listFiles.setAdapter(adapter);
+}
+
 
 
   private void showMessage(String msg) {

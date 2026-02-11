@@ -37,8 +37,10 @@ public class MainActivity extends AppCompatActivity {
   
   private static final int REQUEST_OPEN = 1;
   private static final int REQUEST_SAVE = 2;
+  
+  private static final int REQUEST_OPEN_PROJECT = 100;
+private Uri projectRootUri;
 
-   
 
   @Override
   protected void onCreate(Bundle savedInstanceState) {
@@ -56,10 +58,15 @@ public class MainActivity extends AppCompatActivity {
     editor.setLineNumberEnabled(true);
     
     Button btnOpen = findViewById(R.id.btnOpen);
-Button btnSave = findViewById(R.id.btnSave);
+    Button btnSave = findViewById(R.id.btnSave);
+    Button btnOpenProject = findViewById(R.id.btnOpenProject);
 
 btnOpen.setOnClickListener(v -> openFile());
 btnSave.setOnClickListener(v -> saveFile());
+
+
+btnOpenProject.setOnClickListener(v -> openProject());
+
 
   }
   
@@ -78,43 +85,92 @@ btnSave.setOnClickListener(v -> saveFile());
     startActivityForResult(intent, REQUEST_SAVE);
 }
 
+   private void openProject() {
+    Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT_TREE);
+    intent.addFlags(
+            Intent.FLAG_GRANT_READ_URI_PERMISSION |
+            Intent.FLAG_GRANT_WRITE_URI_PERMISSION |
+            Intent.FLAG_GRANT_PERSISTABLE_URI_PERMISSION
+    );
+    startActivityForResult(intent, REQUEST_OPEN_PROJECT);
+}
 
-  @Override
+
+
+  // @Override
+// protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+    // super.onActivityResult(requestCode, resultCode, data);
+
+    // if (resultCode != RESULT_OK || data == null) return;
+
+    // Uri uri = data.getData();
+
+    // try {
+        // if (requestCode == REQUEST_OPEN) {
+            // BufferedReader reader = new BufferedReader(
+                    // new InputStreamReader(getContentResolver().openInputStream(uri))
+            // );
+
+            // StringBuilder text = new StringBuilder();
+            // String line;
+            // while ((line = reader.readLine()) != null) {
+                // text.append(line).append("\n");
+            // }
+            // reader.close();
+
+            // editor.setText(text.toString());
+
+        // } else if (requestCode == REQUEST_SAVE) {
+            // OutputStream outputStream =
+                    // getContentResolver().openOutputStream(uri);
+
+            // outputStream.write(editor.getText().toString().getBytes());
+            // outputStream.close();
+        // }
+
+    // } catch (Exception e) {
+        // e.printStackTrace();
+    // }
+// }
+
+    @Override
 protected void onActivityResult(int requestCode, int resultCode, Intent data) {
     super.onActivityResult(requestCode, resultCode, data);
 
-    if (resultCode != RESULT_OK || data == null) return;
+    if (requestCode == REQUEST_OPEN_PROJECT) {
 
-    Uri uri = data.getData();
-
-    try {
-        if (requestCode == REQUEST_OPEN) {
-            BufferedReader reader = new BufferedReader(
-                    new InputStreamReader(getContentResolver().openInputStream(uri))
-            );
-
-            StringBuilder text = new StringBuilder();
-            String line;
-            while ((line = reader.readLine()) != null) {
-                text.append(line).append("\n");
-            }
-            reader.close();
-
-            editor.setText(text.toString());
-
-        } else if (requestCode == REQUEST_SAVE) {
-            OutputStream outputStream =
-                    getContentResolver().openOutputStream(uri);
-
-            outputStream.write(editor.getText().toString().getBytes());
-            outputStream.close();
+        if (resultCode != RESULT_OK || data == null) {
+            showMessage("Project opening cancelled");
+            return;
         }
 
-    } catch (Exception e) {
-        e.printStackTrace();
+        Uri uri = data.getData();
+        if (uri == null) {
+            showMessage("Invalid project folder");
+            return;
+        }
+
+        // حفظ الصلاحيات
+        final int flags = data.getFlags() &
+                (Intent.FLAG_GRANT_READ_URI_PERMISSION |
+                 Intent.FLAG_GRANT_WRITE_URI_PERMISSION);
+
+        try {
+            getContentResolver().takePersistableUriPermission(uri, flags);
+        } catch (SecurityException e) {
+            showMessage("Permission denied for this folder");
+            return;
+        }
+
+        projectRootUri = uri;
+        showMessage("Project opened successfully");
     }
 }
 
+
+  private void showMessage(String msg) {
+    Toast.makeText(this, msg, Toast.LENGTH_SHORT).show();
+}
 
 
 
