@@ -6,9 +6,10 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.recyclerview.widget.RecyclerView;
 import androidx.documentfile.provider.DocumentFile;
+import androidx.recyclerview.widget.RecyclerView;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class ProjectTreeAdapter
@@ -18,13 +19,13 @@ public class ProjectTreeAdapter
         void onFileClick(DocumentFile file);
     }
 
-    private final List<DocumentFile> files;
+    private final List<TreeNode> nodes = new ArrayList<>();
     private final OnFileClickListener listener;
 
-    public ProjectTreeAdapter(List<DocumentFile> files,
+    public ProjectTreeAdapter(TreeNode root,
                               OnFileClickListener listener) {
-        this.files = files;
         this.listener = listener;
+        nodes.add(root);
     }
 
     @NonNull
@@ -37,22 +38,85 @@ public class ProjectTreeAdapter
 
     @Override
     public void onBindViewHolder(@NonNull ViewHolder holder, int position) {
-        DocumentFile file = files.get(position);
-        holder.textView.setText(file.getName());
+
+        TreeNode node = nodes.get(position);
+        holder.textView.setText(getPrefix(node) + node.file.getName());
 
         holder.itemView.setOnClickListener(v -> {
-            if (listener != null) {
-                listener.onFileClick(file);
+            if (node.isDirectory()) {
+                toggleNode(position);
+            } else {
+                if (listener != null) {
+                    listener.onFileClick(node.file);
+                }
             }
         });
     }
 
     @Override
     public int getItemCount() {
-        return files.size();
+        return nodes.size();
+    }
+
+    private String getPrefix(TreeNode node) {
+        StringBuilder sb = new StringBuilder();
+        for (int i = 0; i < node.depth; i++) {
+            sb.append("   ");
+        }
+        if (node.isDirectory()) {
+            sb.append(node.isExpanded ? "📂 " : "📁 ");
+        } else {
+            sb.append("📄 ");
+        }
+        return sb.toString();
+    }
+
+    private void toggleNode(int position) {
+
+        TreeNode node = nodes.get(position);
+
+        if (node.isExpanded) {
+            collapseNode(position);
+        } else {
+            expandNode(position);
+        }
+    }
+
+    private void expandNode(int position) {
+
+        TreeNode node = nodes.get(position);
+        node.isExpanded = true;
+
+        DocumentFile[] children = node.file.listFiles();
+        int insertIndex = position + 1;
+
+        for (DocumentFile child : children) {
+            nodes.add(insertIndex,
+                    new TreeNode(child, node.depth + 1));
+            insertIndex++;
+        }
+
+        notifyDataSetChanged();
+    }
+
+    private void collapseNode(int position) {
+
+        TreeNode node = nodes.get(position);
+        node.isExpanded = false;
+
+        int depth = node.depth;
+        int removeIndex = position + 1;
+
+        while (removeIndex < nodes.size()
+                && nodes.get(removeIndex).depth > depth) {
+            nodes.remove(removeIndex);
+        }
+
+        notifyDataSetChanged();
     }
 
     static class ViewHolder extends RecyclerView.ViewHolder {
+
         TextView textView;
 
         ViewHolder(View itemView) {

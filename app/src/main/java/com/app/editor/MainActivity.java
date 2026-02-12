@@ -191,13 +191,22 @@ public class MainActivity extends AppCompatActivity {
     // =========================
     private void showFilesInDrawer() {
 
-        treeAdapter = new ProjectTreeAdapter(projectFiles, file -> {
-            openFileFromProject(file);
-            drawerLayout.closeDrawers();
-        });
-
-        recyclerTree.setAdapter(treeAdapter);
+    DocumentFile root = DocumentFile.fromTreeUri(this, projectRootUri);
+    if (root == null) {
+        showMessage("Failed to load project");
+        return;
     }
+
+    TreeNode rootNode = new TreeNode(root, 0);
+
+    treeAdapter = new ProjectTreeAdapter(rootNode, file -> {
+        openFileFromProject(file);
+        drawerLayout.closeDrawers();
+    });
+
+    recyclerTree.setAdapter(treeAdapter);
+}
+
 
     // =========================
     // Open File
